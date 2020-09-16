@@ -1,0 +1,29 @@
+{
+  "name": "come_come",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon"
+  },
+  "keywords": [
+    "Filipe",
+    "frutinha",
+    "release",
+    "game",
+    "domzinhuu"
+  ],
+  "type": "module",
+  "author": "Maique Rosa",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "lodash": "^4.17.20",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "browserify": "^16.5.2",
+    "nodemon": "^2.0.4"
+  }
+}

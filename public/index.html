@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meu primeiro Jogo Multiplayer</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Changa:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div id="menu" class="container">
+      <div class="menu">
+        <div class="game-cover">
+          <div class="top-space"></div>
+          <div class="bottom-space">
+            <h1 class="game-name">
+              <strong style="font-size: 1.2em; color: #ccc">G</strong>et
+              <strong style="font-size: 1.2em; color: green">T</strong>he
+              <strong style="font-size: 1.2em; color: blue">P</strong>oint
+            </h1>
+          </div>
+
+          <div class="box game-player-box">
+            <div class="player-cover"></div>
+          </div>
+          <div class="box game-fruit-box">
+            <div class="fruit-cover"></div>
+          </div>
+          <div class="box game-enemy-box">
+            <div class="enemy-cover"></div>
+          </div>
+        </div>
+
+        <div class="controllers">
+          <div class="press-start">
+            <button class="menu-btn" id="start">Iniciar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="game" style="justify-content: center; flex-direction: column">
+      <div class="content-wrapper">
+        <table class="hud" id="playerList"></table>
+
+        <canvas class="game-canvas" id="canvas-screen"></canvas>
+
+        <table class="hud" id="playerScore"></table>
+      </div>
+
+      <button id="btn-read" class="btn">
+        INICIAR <i class="fa fa-check"></i>
+      </button>
+      <div id="legend" class="legend-container">
+        <span class="box-green"></span>
+        <span class="value">1 PONTO</span>
+
+        <span class="box-purple"></span>
+        <span class="value">ALEATÓRIO (-10 até 5 PONTOS)</span>
+
+        <span class="box-orange"></span>
+        <span class="value">10 PONTOS</span>
+      </div>
+    </div>
+
+    <script type="module">
+      import createKeyboardListenner from "./keyboard-listenner.js";
+      import createGame from "./game.js";
+      import renderScreen from "./render.js";
+      const scoreTable = document.getElementById("playerScore");
+      const playersTable = document.getElementById("playerList");
+      const menu = document.getElementById("menu");
+      const gameContent = document.getElementById("game");
+      const enterButton = document.getElementById("start");
+      const readButton = document.getElementById("btn-read");
+      const legendPanel = document.getElementById("legend");
+
+      enterButton.addEventListener("click", (evt) => {
+        socket.emit("enter-game");
+      });
+
+      readButton.addEventListener("click", (evt) => {
+        const ready = !readButton.classList.contains("ready");
+        socket.emit("player-ready", { playerId, ready });
+      });
+
+      let playerId;
+
+      gameContent.style.display = "none";
+
+      const game = createGame();
+      const keyboardListenener = createKeyboardListenner(document);
+      const socket = io();
+
+      socket.on("connect", () => {
+        playerId = socket.id;
+        console.log(`Player connected on client with id ${playerId}`);
+
+        const screen = document.getElementById("canvas-screen");
+        screen.style.width = `${game.state.screen.width * 18}px`;
+        screen.style.height = `${game.state.screen.height * 18}px`;
+        screen.width = game.state.screen.width;
+        screen.height = game.state.screen.height;
+
+        renderScreen(screen, game, requestAnimationFrame, playerId, {
+          playerId: "Maique",
+        });
+      });
+
+      socket.on("setup", (newState) => {
+        const playerId = socket.id;
+        game.setState(newState);
+        updateTablePlayers(game.state.players);
+        keyboardListenener.registerPlayer(playerId);
+        keyboardListenener.subscribe(game.movePlayer);
+        keyboardListenener.subscribe((command) => {
+          socket.emit(command.type, command);
+        });
+      });
+
+      socket.on("show-game", () => {
+        menu.style.display = "none";
+        gameContent.style.display = "flex";
+      });
+
+      socket.on("ready", (command) => {
+        if (playerId === command.playerId && command.ready) {
+          readButton.classList.add("ready");
+          readButton.innerHTML = "";
+          readButton.innerHTML = `
+          PRONTO <i class="fa fa-thumbs-up"></i>
+        `;
+        } else if (playerId === command.playerId && !command.ready) {
+          readButton.classList.remove("ready");
+          readButton.innerHTML = "";
+          readButton.innerHTML = `
+          INICIAR <i class="fa fa-check"></i>
+          `;
+        }
+      });
+
+      socket.on("game-starting", () => {
+        readButton.style.display = "none";
+        legendPanel.style.display = "grid";
+      });
+
+      socket.on("add-player", (command) => {
+        game.addPlayer(command);
+        updateTablePlayers(game.state.players);
+      });
+
+      socket.on("finish-match", (winner) => {
+        alert(`JOGADOR ${winner.playerId} VENCEU!!!`);
+        legendPanel.style.display = "none";
+        readButton.classList.remove("ready");
+        readButton.innerHTML = "";
+        readButton.innerHTML = `
+          INICIAR <i class="fa fa-check"></i>
+          `;
+        readButton.style.display = "block";
+      });
+
+      socket.on("remove-player", (command) => {
+        game.removePlayer(command);
+        updateTablePlayers(game.state.players);
+      });
+
+      socket.on("move-player", (command) => {
+        const playerId = socket.id;
+
+        if (playerId !== command.playerId) {
+          game.movePlayer(command);
+        }
+      });
+
+      socket.on("add-fruit", (command) => {
+        console.log(command);
+        console.log(`Receiving ${command.type} -> ${command.fruitId}`);
+        game.addFruit(command);
+      });
+
+      socket.on("remove-fruit", (command) => {
+        console.log(`Receiving ${command.type} -> ${command.fruitId}`);
+        game.removeFruit(command);
+      });
+
+      socket.on("remove-all-fruit", () => {
+        game.removeAllFruit();
+      });
+      socket.on("update-score", (command) => {
+        updateTableScore(command.scoreList);
+      });
+
+      function updateTableScore(scoreList) {
+        scoreTable.innerHTML = "";
+        scoreTable.appendChild(createTableHeader("Placar"));
+        const tbody = document.createElement("tbody");
+        const tfoot = document.createElement("tfoot");
+
+        tbody.className = "best-player-area";
+        const bestPlayers = scoreList.splice(0, 3);
+
+        for (const score of bestPlayers) {
+          const index = bestPlayers.indexOf(score);
+          const tr = document.createElement("tr");
+          const tdPlayerName = document.createElement("td");
+          const tdPosition = document.createElement("td");
+
+          tdPlayerName.innerText = score.playerId;
+          tdPosition.className = "score-point";
+          tdPosition.innerHTML = `
+            ${score.score} <i class="fa fa-trophy ${
+            index === 0 ? "gold" : index === 1 ? "silver" : "copper"
+          }"></i>
+          `;
+
+          tr.appendChild(tdPlayerName);
+          tr.appendChild(tdPosition);
+          tr.className = playerId === score.playerId ? "actualPlayer" : "";
+          tbody.appendChild(tr);
+        }
+        scoreTable.appendChild(tbody);
+
+        for (const score of scoreList) {
+          const index = scoreList.indexOf(score);
+          const tr = document.createElement("tr");
+          const tdPlayerName = document.createElement("td");
+          const tdPosition = document.createElement("td");
+
+          tdPlayerName.innerText = score.playerId;
+          tdPosition.innerText = score.score;
+          tdPosition.style.textAlign = "right";
+          tdPosition.colSpan = 2;
+
+          tr.appendChild(tdPlayerName);
+          tr.appendChild(tdPosition);
+          tr.className = playerId === score.playerId ? "actualPlayer" : "";
+
+          tfoot.appendChild(tr);
+        }
+
+        scoreTable.appendChild(tfoot);
+      }
+
+      function updateTablePlayers(players) {
+        playersTable.innerHTML = "";
+        playersTable.appendChild(createTableHeader("Lista de Jogadores"));
+        const tbody = document.createElement("tbody");
+        const tfoot = document.createElement("tfoot");
+
+        for (const playerKey of Object.keys(players)) {
+          const tr = document.createElement("tr");
+          const tdPlayerName = document.createElement("td");
+          tdPlayerName.innerText = playerKey;
+
+          tr.appendChild(tdPlayerName);
+          tr.className = playerId === playerKey ? "actualPlayer" : "";
+          tbody.appendChild(tr);
+        }
+
+        tfoot.innerHTML = `
+        <td>
+            <p><i class="fa fa-sign-in"></i> ${
+              Object.keys(players).length
+            }/15 Jogadores na sala</p>
+          </td>
+        `;
+
+        playersTable.appendChild(tbody);
+        playersTable.appendChild(tfoot);
+      }
+
+      function createTableHeader(innetText) {
+        const theader = document.createElement("thead");
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+
+        th.className = "text-bold";
+        th.innerText = innetText;
+
+        tr.appendChild(th);
+        theader.appendChild(tr);
+        return theader;
+      }
+    </script>
+  </body>
+</html>
