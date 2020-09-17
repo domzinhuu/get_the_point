@@ -21,10 +21,10 @@ sockets.on("connection", (socket) => {
   const command = { playerId: socket.id };
   console.log(`> Player connected on server with id ${command.playerId}`);
 
-  game.addPlayer(command);
-  socket.emit("setup", game.state);
-
   socket.on("enter-game", () => {
+    game.addPlayer(command);
+    socket.emit("setup", game.state);
+
     socket.emit("show-game");
   });
 
@@ -35,6 +35,10 @@ sockets.on("connection", (socket) => {
   socket.on("disconnect", () => {
     game.removePlayer(command);
     console.log(`> Player ${command.playerId} disconnected`);
+
+    if (Object.keys(game.state.players).length === 0) {
+      game.clearRoom();
+    }
   });
 
   socket.on("move-player", (moveCommand) => {

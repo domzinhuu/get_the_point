@@ -1,4 +1,6 @@
 import createUtils from "./utils.js";
+import createFruit from "./fruit.js";
+import createPlayer from "./player.js";
 
 function createGame() {
   let startGameInterval;
@@ -7,33 +9,14 @@ function createGame() {
   const state = {
     players: {},
     score: [],
-    fruits: {
-      types: {
-        normal: 1,
-        random: { min: -10, max: 5 },
-        special: 10,
-      },
-    },
+    fruits: {},
     screen: {
       width: 35,
       height: 30,
     },
   };
 
-  const _fruitTypeArray = [
-    "normal",
-    "normal",
-    "normal",
-    "normal",
-    "normal",
-    "normal",
-    "random",
-    "random",
-    "special",
-    "special",
-  ];
-
-  const utils = createUtils(state);
+  const utils = createUtils();
 
   function subscribe(observerFunction) {
     observers.push(observerFunction);
@@ -41,7 +24,7 @@ function createGame() {
 
   function startGame() {
     state.score = state.score.map((item) => {
-      item.score = 99;
+      item.score = 45;
       return item;
     });
 
@@ -49,14 +32,9 @@ function createGame() {
       type: "update-score",
       scoreList: state.score,
     });
-    gameStarted = true;
-    startGameInterval = setInterval(() => {
-      const fruitFrequency = utils.getRandonNumber(1000, 5000);
 
-      setTimeout(() => {
-        addFruit();
-      }, fruitFrequency);
-    }, 3000);
+    gameStarted = true;
+    runFruitLoop(2000);
   }
 
   function stopGame() {
@@ -66,8 +44,22 @@ function createGame() {
       state.players[key].ready = false;
     });
 
+    removeAllFruit();
     notifyAll({
       type: "remove-all-fruit",
+    });
+  }
+
+  function clearRoom() {
+    clearInterval(startGameInterval);
+    gameStarted = false;
+    state.players = {};
+    state.fruits = [];
+    state.fruits = {};
+
+    notifyAll({
+      type: "clear-game",
+      state,
     });
   }
 
@@ -94,7 +86,6 @@ function createGame() {
       allReady = false;
     });
 
-    console.log(state.players);
     if (Object.keys(state.players).length > 1 && allReady) {
       startGame();
       notifyAll({
@@ -110,26 +101,24 @@ function createGame() {
   }
 
   function addPlayer(command) {
-    const playerId = command.playerId;
-    const positionX = command.positionX || utils.getRandonPositionX();
-    const positionY = command.positionY || utils.getRandonPositionY();
-    const ready = command.ready;
+    let player = null;
+    const { width, height } = state.screen;
 
-    state.players[playerId] = {
-      positionX,
-      positionY,
-      ready,
-    };
+    if (!command.player) {
+      player = createPlayer(command.playerId, width, height);
+    } else {
+      player = command.player;
+    }
+
+    state.players[command.playerId] = player;
 
     notifyAll({
       type: "add-player",
-      playerId,
-      positionX,
-      positionY,
-      ready,
+      playerId: command.playerId,
+      player,
     });
 
-    state.score.push({ playerId, score: 0 });
+    state.score.push({ playerId: command.playerId, score: 0 });
     notifyAll({
       type: "update-score",
       scoreList: state.score,
@@ -157,23 +146,22 @@ function createGame() {
   }
 
   function addFruit(command) {
-    let fruit = {};
+    let fruit = null;
+    const { width, height } = state.screen;
 
-    if (command) {
-      fruit.fruitType = command.fruitType;
-      fruit.fruitId = command.fruitId;
-      fruit.positionX = command.positionX;
-      fruit.positionY = command.positionY;
-      fruit.point = command.point;
+    if (!command) {
+      fruit = createFruit(width, height);
     } else {
-      fruit = mountDefaultFruit();
+      fruit = command.fruit;
     }
+
     const canAddFruit = command ? command.gameStarted : gameStarted;
+
     if (canAddFruit) {
       state.fruits[fruit.fruitId] = fruit;
     }
 
-    notifyAll({ ...fruit, type: "add-fruit", gameStarted: canAddFruit });
+    notifyAll({ fruit, type: "add-fruit", gameStarted: canAddFruit });
   }
 
   function removeFruit(command) {
@@ -185,8 +173,7 @@ function createGame() {
   }
 
   function removeAllFruit() {
-    const types = state.fruits.types;
-    state.fruits = { types };
+    state.fruits = {};
   }
 
   function addScore(command) {
@@ -195,33 +182,15 @@ function createGame() {
     if (player) {
       const index = state.score.indexOf(player);
       state.score[index].score += command.point;
-      state.score = state.score.sort((player1, player2) => {
-        if (player1.score < player2.score) {
-          return 1;
-        } else {
-          return -1;
-        }
-      });
+      reorderScore();
+
       notifyAll({
         type: "update-score",
         scoreList: state.score,
       });
 
-      const winnerPlayer = state.score.find((player) => player.score >= 50);
-      console.log(winnerPlayer);
-      if (winnerPlayer) {
-        finishMatch(winnerPlayer);
-      }
+      checkForTheWinner();
     }
-  }
-
-  function finishMatch(winnerPlayer) {
-    gameStarted = false;
-    stopGame();
-    notifyAll({
-      type: "finish-match",
-      playerId: winnerPlayer.playerId,
-    });
   }
 
   function movePlayer(command) {
@@ -247,8 +216,8 @@ function createGame() {
         );
       },
       r: () => {
-        player.positionX = utils.getRandonPositionX();
-        player.positionY = utils.getRandonPositionY();
+        player.positionX = utils.getRandonPositionX(state.screen.width);
+        player.positionY = utils.getRandonPositionY(state.screen.height);
       },
     };
 
@@ -273,34 +242,53 @@ function createGame() {
           player.positionY === fruit.positionY &&
           player.positionX === fruit.positionX
         ) {
-          removeFruit({ fruitId });
           addScore({ playerId, point: fruit.point });
+          removeFruit({ fruitId });
         }
       }
     }
   }
 
-  function mountDefaultFruit() {
-    const randomFruitType = utils.getRandonFruitType(_fruitTypeArray);
+  function finishMatch(winnerPlayer) {
+    gameStarted = false;
+    stopGame();
+    notifyAll({
+      type: "finish-match",
+      playerId: winnerPlayer.playerId,
+    });
+  }
 
-    const fruitPoint = utils.getFruitPointsByType(
-      randomFruitType,
-      state.fruits.types
-    );
+  // Private functions
+  function checkForTheWinner() {
+    const winnerPlayer = state.score.find((player) => player.score >= 50);
 
-    return {
-      fruitId: utils.generateUUID(),
-      fruitType: randomFruitType,
-      positionX: utils.getRandonPositionX(),
-      positionY: utils.getRandonPositionY(),
-      point: fruitPoint.min
-        ? utils.getRandonNumber(fruitPoint.min, fruitPoint.max)
-        : fruitPoint,
-    };
+    if (winnerPlayer) {
+      finishMatch(winnerPlayer);
+    }
+  }
+
+  function reorderScore() {
+    state.score = state.score.sort((player1, player2) => {
+      if (player1.score < player2.score) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  }
+
+  function runFruitLoop(period) {
+    startGameInterval = setInterval(() => {
+      const fruitFrequency = utils.getRandonNumber(1000, 5000);
+      setTimeout(() => {
+        addFruit();
+      }, fruitFrequency);
+    }, period);
   }
 
   return {
     startGame,
+    clearRoom,
     setState,
     checkToStartGame,
     addPlayer,

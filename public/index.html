@@ -155,6 +155,7 @@
 
       socket.on("add-player", (command) => {
         game.addPlayer(command);
+        console.log(`> Jogador ${command.playerId} Conectou`);
         updateTablePlayers(game.state.players);
       });
 
@@ -183,13 +184,10 @@
       });
 
       socket.on("add-fruit", (command) => {
-        console.log(command);
-        console.log(`Receiving ${command.type} -> ${command.fruitId}`);
         game.addFruit(command);
       });
 
       socket.on("remove-fruit", (command) => {
-        console.log(`Receiving ${command.type} -> ${command.fruitId}`);
         game.removeFruit(command);
       });
 
@@ -200,6 +198,10 @@
         updateTableScore(command.scoreList);
       });
 
+      socket.on("clear-game", (newState) => {
+        console.log(`Receiving clear game -> Game Disconnected`);
+        game.setState(newState);
+      });
       function updateTableScore(scoreList) {
         scoreTable.innerHTML = "";
         scoreTable.appendChild(createTableHeader("Placar"));

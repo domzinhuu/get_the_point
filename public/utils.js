@@ -1,23 +1,10 @@
-function createMethodsUtils(state) {
-  function getRandonPositionX() {
-    const { width } = state.screen;
-    return getRandonNumber(0, width);
+function createMethodsUtils() {
+  function getRandonPositionX(maxValue) {
+    return getRandonNumber(0, maxValue);
   }
 
-  function getRandonPositionY() {
-    const { height } = state.screen;
-    return getRandonNumber(0, height);
-  }
-
-  function getRandonFruitType(typeArray) {
-    const typeIndex = getRandonNumber(0, typeArray.length - 1);
-
-    return typeArray[typeIndex];
-  }
-
-  function getFruitPointsByType(type, fruitTypes) {
-    const selectedType = fruitTypes[type];
-    return selectedType;
+  function getRandonPositionY(maxValue) {
+    return getRandonNumber(0, maxValue);
   }
 
   function getRandonNumber(min, max) {
@@ -38,8 +25,6 @@ function createMethodsUtils(state) {
   return {
     getRandonPositionX,
     getRandonPositionY,
-    getRandonFruitType,
-    getFruitPointsByType,
     getRandonNumber,
     generateUUID,
   };

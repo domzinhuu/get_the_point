@@ -11,22 +11,28 @@ function renderScreen(
   Object.keys(game.state.players).forEach((key) => {
     const player = game.state.players[key];
 
-    context.fillStyle = "black";
-    context.globalAlpha = 0.1;
-    context.fillRect(player.positionX, player.positionY, 1, 1);
+    if (player) {
+      context.fillStyle = "black";
+      context.globalAlpha = 0.1;
+      context.fillRect(player.positionX, player.positionY, 1, 1);
+    }
   });
 
   Object.keys(game.state.fruits).forEach((key) => {
     const fruit = game.state.fruits[key];
 
-    context.fillStyle =
-      fruit.fruitType === "random"
-        ? "#977EF2"
-        : fruit.fruitType === "special"
-        ? "#F25C05"
-        : "green";
-    context.globalAlpha = 1;
-    context.fillRect(fruit.positionX, fruit.positionY, 1, 1);
+    if (fruit) {
+      context.fillStyle =
+        fruit.fruitType === "random"
+          ? "#977EF2"
+          : fruit.fruitType === "special"
+          ? "#F25C05"
+          : "green";
+      context.globalAlpha = 1;
+      context.fillRect(fruit.positionX, fruit.positionY, 1, 1);
+    } else {
+      game.state.fruits;
+    }
   });
 
   const currentPlayer = game.state.players[currentPlayerId];
