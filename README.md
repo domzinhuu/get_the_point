@@ -4,9 +4,10 @@
 
 ## FUNCIONALIDADE
 
-- [x] Funcionalidade multiplayer
+- [x] Multiplayer
 - [x] Contador de pontos
-- [x] Inicio de Jogo sincronizado
+- [x] Inicio de jogo sincronizado
+- [x] Stop do jogo caso os jogadores se desconectem
 - [ ] Possibilidade do player escolher a pontuação para ganhar
 - [ ] Criação de Salas privadas
 - [ ] Alteração do nome do Player
@@ -23,8 +24,8 @@
 
 Este é um pequeno jogo experimental com HTML/Javascript. O jogo tem por objeto recolher os pontos que aparecem aleatóriamente de tempos em tempos, dependendo da cor do elemento que aparceu para ser recolhido temos uma pontuação diferente.
 
-- ELEMENTO VERDE : 1 Ponto
-- ELEMENTO ROXO : Aleatório (-5 à 5) Pontos
+- ELEMENTO VERDE   : 1 Ponto
+- ELEMENTO ROXO    : -5 Pontos
 - ELEMENTO LARANJA : 10 Pontos
 
 O jogador que conseguir recolher 50 pontos é o vencedor.
