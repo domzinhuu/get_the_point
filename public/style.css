@@ -13,6 +13,10 @@ body {
   font-weight: bold;
 }
 
+.text-center {
+  text-align: center;
+}
+
 .container {
   width: 980px;
   height: 100vh;
@@ -154,6 +158,35 @@ body {
   animation-iteration-count: infinite;
 }
 
+.gamehud {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.meta {
+  color: #f4f4f4;
+}
+
+.meta-value {
+  font-size: 20px;
+  text-decoration: underline;
+}
+
+.select-meta p {
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.meta-dropdown {
+  width: 30%;
+  height: 40px;
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 8px;
+}
+
 .btn {
   width: 200px;
   height: 60px;
@@ -272,6 +305,30 @@ body {
   color: chocolate;
 }
 
+.badge {
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  color: #202020;
+}
+
+.voted-badge {
+  background-color: lightgreen;
+}
+
+.vote-badge {
+  background-color: #ccc;
+}
+
+.hide {
+  display: none;
+}
+
 .best-player-area tr td {
   border: none;
   margin: 0;
@@ -283,9 +340,8 @@ body {
 }
 
 .actualPlayer {
-  background-color: rgb(25, 21, 226);
-  color: #fff;
-  font-weight: bold;
+  color: rgb(25, 21, 226);
+  font-weight: 600;
 }
 
 #playerList tfoot {

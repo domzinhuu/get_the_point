@@ -8,7 +8,7 @@
 - [x] Contador de pontos
 - [x] Inicio de jogo sincronizado
 - [x] Stop do jogo caso os jogadores se desconectem
-- [ ] Possibilidade do player escolher a pontuação para ganhar
+- [x] Possibilidade do player escolher a pontuação para ganhar
 - [ ] Criação de Salas privadas
 - [ ] Alteração do nome do Player
 
