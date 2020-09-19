@@ -14,6 +14,7 @@ app.get("/game/:id", (req, res) => {});
 const game = createGame();
 
 game.subscribe((command) => {
+  console.log(`> EMITINDO COMMANDO ${command.type}`);
   sockets.emit(command.type, command);
 });
 
@@ -26,6 +27,15 @@ sockets.on("connection", (socket) => {
     socket.emit("setup", game.state);
 
     socket.emit("show-game");
+  });
+
+  socket.on("player-vote", (command) => {
+    const playerVote = game.state.voteOptions.find(
+      (value) => value === command.vote
+    );
+    if (command.playerId === socket.id && playerVote) {
+      game.playerVoted(command);
+    }
   });
 
   socket.on("player-ready", (command) => {

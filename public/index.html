@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Meu primeiro Jogo Multiplayer</title>
+    <title>Get The Point</title>
     <link rel="stylesheet" href="style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Changa:wght@400;700&display=swap"
@@ -51,15 +51,30 @@
     <div id="game" style="justify-content: center; flex-direction: column">
       <div class="content-wrapper">
         <table class="hud" id="playerList"></table>
-
-        <canvas class="game-canvas" id="canvas-screen"></canvas>
+        <div class="gamehud">
+          <h3 id="meta" class="meta"></h3>
+          <canvas class="game-canvas" id="canvas-screen"></canvas>
+        </div>
 
         <table class="hud" id="playerScore"></table>
       </div>
 
+      <div id="banner-vote" class="select-meta text-center">
+        <p>Vote no objetivo da partida!</p>
+        <select name="meta-dropdown" class="meta-dropdown" id="meta-dropdown">
+          <option value="" selected>SELECIONE OS PONTOS</option>
+          <option value="10">10 Pontos</option>
+          <option value="20">20 Pontos</option>
+          <option value="30">30 Pontos</option>
+          <option value="40">40 Pontos</option>
+          <option value="50">50 Pontos</option>
+          <option value="100">100 Pontos</option>
+        </select>
+      </div>
       <button id="btn-read" class="btn">
         INICIAR <i class="fa fa-check"></i>
       </button>
+
       <div id="legend" class="legend-container">
         <span class="box-green"></span>
         <span class="value">1 PONTO</span>
@@ -83,14 +98,29 @@
       const enterButton = document.getElementById("start");
       const readButton = document.getElementById("btn-read");
       const legendPanel = document.getElementById("legend");
+      const metaDropdown = document.getElementById("meta-dropdown");
+      const bannerVote = document.getElementById("banner-vote");
+      const textMeta = document.getElementById("meta");
 
       enterButton.addEventListener("click", (evt) => {
         socket.emit("enter-game");
       });
 
       readButton.addEventListener("click", (evt) => {
-        const ready = !readButton.classList.contains("ready");
-        socket.emit("player-ready", { playerId, ready });
+        if (metaDropdown.selectedOptions[0].value !== "") {
+          const ready = !readButton.classList.contains("ready");
+          socket.emit("player-ready", { playerId, ready });
+        } else {
+          alert("Escolha a pontuação para votar!");
+        }
+      });
+
+      metaDropdown.addEventListener("change", (evt) => {
+        const selectedValue = evt.target.value;
+
+        if (selectedValue) {
+          socket.emit("player-vote", { playerId, vote: selectedValue });
+        }
       });
 
       let playerId;
@@ -146,11 +176,20 @@
           INICIAR <i class="fa fa-check"></i>
           `;
         }
+
+        updateTablePlayers(command.players);
       });
 
-      socket.on("game-starting", () => {
+      socket.on("game-starting", (command) => {
         readButton.style.display = "none";
         legendPanel.style.display = "grid";
+        bannerVote.style.visibility = "collapse";
+        textMeta.innerHTML = `
+        Alcançe os
+            <span id="metaValue" class="meta-value">${command.state.pointToWin} PONTOS</span> antes dos
+            seus adversários
+        `;
+        updateTablePlayers(command.state.players);
       });
 
       socket.on("add-player", (command) => {
@@ -168,6 +207,9 @@
           INICIAR <i class="fa fa-check"></i>
           `;
         readButton.style.display = "block";
+        bannerVote.style.visibility = "visible";
+        textMeta.innerHTML = "";
+        metaDropdown.value = "";
       });
 
       socket.on("remove-player", (command) => {
@@ -183,25 +225,25 @@
         }
       });
 
-      socket.on("add-fruit", (command) => {
-        game.addFruit(command);
+      socket.on("update-fruit", (command) => {
+        game.setState(command.fruits, "fruits");
+        console.log(game.state);
       });
 
-      socket.on("remove-fruit", (command) => {
-        game.removeFruit(command);
-      });
-
-      socket.on("remove-all-fruit", () => {
-        game.removeAllFruit();
-      });
       socket.on("update-score", (command) => {
         updateTableScore(command.scoreList);
+      });
+
+      socket.on("player-voted", (command) => {
+        game.setState(command.state);
+        updateTablePlayers(command.state.players);
       });
 
       socket.on("clear-game", (newState) => {
         console.log(`Receiving clear game -> Game Disconnected`);
         game.setState(newState);
       });
+
       function updateTableScore(scoreList) {
         scoreTable.innerHTML = "";
         scoreTable.appendChild(createTableHeader("Placar"));
@@ -265,12 +307,13 @@
           tdPlayerName.innerText = playerKey;
 
           tr.appendChild(tdPlayerName);
+          tr.appendChild(prepareBadgerOfVote(players[playerKey]));
           tr.className = playerId === playerKey ? "actualPlayer" : "";
           tbody.appendChild(tr);
         }
 
         tfoot.innerHTML = `
-        <td>
+        <td colspan="2">
             <p><i class="fa fa-sign-in"></i> ${
               Object.keys(players).length
             }/15 Jogadores na sala</p>
@@ -285,13 +328,29 @@
         const theader = document.createElement("thead");
         const tr = document.createElement("tr");
         const th = document.createElement("th");
-
         th.className = "text-bold";
         th.innerText = innetText;
 
         tr.appendChild(th);
         theader.appendChild(tr);
         return theader;
+      }
+
+      function prepareBadgerOfVote(player) {
+        const td = document.createElement("td");
+        td.style.width = "20px";
+        const votedAndConfirm = player.vote && player.ready;
+        const votedButNotRead = player.vote && !player.ready;
+
+        td.innerHTML = votedAndConfirm
+          ? `<div class="badge voted-badge"><span>${player.vote}</span></div>`
+          : votedButNotRead
+          ? `<div class="badge vote-badge"><span>${player.vote}</span></div>`
+          : `<div class="vote-badge hide">
+            <span></span>
+          </div>`;
+
+        return td;
       }
     </script>
   </body>

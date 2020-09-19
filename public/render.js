@@ -21,18 +21,14 @@ function renderScreen(
   Object.keys(game.state.fruits).forEach((key) => {
     const fruit = game.state.fruits[key];
 
-    if (fruit) {
-      context.fillStyle =
-        fruit.fruitType === "random"
-          ? "#977EF2"
-          : fruit.fruitType === "special"
-          ? "#F25C05"
-          : "green";
-      context.globalAlpha = 1;
-      context.fillRect(fruit.positionX, fruit.positionY, 1, 1);
-    } else {
-      game.state.fruits;
-    }
+    context.fillStyle =
+      fruit.fruitType === "random"
+        ? "#977EF2"
+        : fruit.fruitType === "special"
+        ? "#F25C05"
+        : "green";
+    context.globalAlpha = 1;
+    context.fillRect(fruit.positionX, fruit.positionY, 1, 1);
   });
 
   const currentPlayer = game.state.players[currentPlayerId];

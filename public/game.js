@@ -14,6 +14,7 @@ function createGame() {
       width: 35,
       height: 30,
     },
+    voteOptions: ["10", "20", "30", "40", "50", "100"],
   };
 
   const utils = createUtils();
@@ -24,7 +25,7 @@ function createGame() {
 
   function startGame() {
     state.score = state.score.map((item) => {
-      item.score = 45;
+      item.score = 0;
       return item;
     });
 
@@ -47,6 +48,7 @@ function createGame() {
     removeAllFruit();
     notifyAll({
       type: "remove-all-fruit",
+      state,
     });
   }
 
@@ -69,8 +71,12 @@ function createGame() {
     }
   }
 
-  function setState(newState) {
-    Object.assign(state, newState);
+  function setState(newState, propertieName) {
+    if (propertieName) {
+      Object.assign(state[propertieName], newState);
+    } else {
+      Object.assign(state, newState);
+    }
   }
 
   function checkToStartGame(command) {
@@ -86,18 +92,32 @@ function createGame() {
       allReady = false;
     });
 
-    if (Object.keys(state.players).length > 1 && allReady) {
+    if (totalPlayers() > 1 && allReady) {
       startGame();
+      state.pointToWin = parseInt(getThePointToWin(), 10);
+
+      resetPlayerPart("vote");
+
       notifyAll({
         type: "game-starting",
+        state: state,
       });
     } else {
       notifyAll({
         type: "ready",
         playerId: command.playerId,
         ready: command.ready,
+        players: state.players,
       });
     }
+  }
+
+  function playerVoted(command) {
+    state.players[command.playerId].vote = command.vote;
+    notifyAll({
+      type: "player-voted",
+      state,
+    });
   }
 
   function addPlayer(command) {
@@ -161,15 +181,12 @@ function createGame() {
       state.fruits[fruit.fruitId] = fruit;
     }
 
-    notifyAll({ fruit, type: "add-fruit", gameStarted: canAddFruit });
+    notifyAll({ type: "update-fruit", fruits: state.fruits });
   }
 
   function removeFruit(command) {
     delete state.fruits[command.fruitId];
-    notifyAll({
-      type: "remove-fruit",
-      fruitId: command.fruitId,
-    });
+    notifyAll({ type: "update-fruit", fruits: state.fruits });
   }
 
   function removeAllFruit() {
@@ -234,19 +251,18 @@ function createGame() {
   function checkForFruitColision(playerId) {
     const player = state.players[playerId];
 
-    for (const fruitId in state.fruits) {
-      if (state.fruits.hasOwnProperty(fruitId)) {
-        const fruit = state.fruits[fruitId];
+    Object.keys(state.fruits).forEach((key) => {
+      const fruit = state.fruits[key];
 
-        if (
-          player.positionY === fruit.positionY &&
-          player.positionX === fruit.positionX
-        ) {
-          addScore({ playerId, point: fruit.point });
-          removeFruit({ fruitId });
-        }
+      if (
+        fruit &&
+        player.positionY === fruit.positionY &&
+        player.positionX === fruit.positionX
+      ) {
+        addScore({ playerId, point: fruit.point });
+        removeFruit({ fruitId: key });
       }
-    }
+    });
   }
 
   function finishMatch(winnerPlayer) {
@@ -260,7 +276,9 @@ function createGame() {
 
   // Private functions
   function checkForTheWinner() {
-    const winnerPlayer = state.score.find((player) => player.score >= 50);
+    const winnerPlayer = state.score.find(
+      (player) => player.score >= state.pointToWin
+    );
 
     if (winnerPlayer) {
       finishMatch(winnerPlayer);
@@ -279,11 +297,53 @@ function createGame() {
 
   function runFruitLoop(period) {
     startGameInterval = setInterval(() => {
-      const fruitFrequency = utils.getRandonNumber(1000, 5000);
-      setTimeout(() => {
-        addFruit();
-      }, fruitFrequency);
+      if (gameStarted) {
+        const fruitFrequency = utils.getRandonNumber(1000, 5000);
+        setTimeout(() => {
+          addFruit();
+        }, fruitFrequency);
+      }
     }, period);
+  }
+
+  function resetPlayerPart(field) {
+    Object.keys(state.players).forEach((key) => {
+      {
+        delete state.players[key][field];
+      }
+    });
+  }
+
+  function totalPlayers() {
+    return Object.keys(state.players).length;
+  }
+
+  function getThePointToWin() {
+    const votes = {};
+    let votesArray = [];
+
+    Object.keys(state.players).forEach((key) => {
+      const vote = state.players[key].vote;
+      if (votes[vote]) {
+        votes[vote]++;
+      } else {
+        votes[vote] = 1;
+      }
+    });
+
+    Object.keys(votes).forEach((key) => {
+      votesArray.push({ key, value: votes[key] });
+    });
+
+    votesArray = votesArray.sort((a, b) => {
+      if (a.value - b.value) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+
+    return votesArray[votesArray.length - 1].key;
   }
 
   return {
@@ -299,6 +359,7 @@ function createGame() {
     movePlayer,
     checkForFruitColision,
     subscribe,
+    playerVoted,
     state,
   };
 }
