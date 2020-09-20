@@ -144,7 +144,10 @@
         keyboardListenener.registerPlayer(playerId);
         keyboardListenener.subscribe(game.movePlayer);
         keyboardListenener.subscribe((command) => {
-          socket.emit(command.type, command);
+            if(game.state.acceptMoves.indexOf(command.keyPressed) !== -1){
+                socket.emit(command.type, command);
+            }
+          
         });
       });
 
@@ -218,7 +221,6 @@
 
       socket.on("update-fruit", (command) => {
         game.setState(command.fruits, "fruits");
-        console.log(game.state);
       });
 
       socket.on("update-score", (command) => {
@@ -231,7 +233,6 @@
       });
 
       socket.on("clear-game", (newState) => {
-        console.log(`Receiving clear game -> Game Disconnected`);
         game.setState(newState);
       });
 

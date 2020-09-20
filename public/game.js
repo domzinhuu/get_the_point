@@ -7,6 +7,7 @@ function createGame() {
     let gameStarted = false;
     const observers = [];
     const state = {
+        acceptMoves: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
         players: {},
         score: [],
         fruits: {},
@@ -236,11 +237,7 @@ function createGame() {
                     player.positionX + 1,
                     state.screen.width - 1
                 );
-            },
-            r: () => {
-                player.positionX = utils.getRandonPositionX(state.screen.width);
-                player.positionY = utils.getRandonPositionY(state.screen.height);
-            },
+            }
         };
 
         const { keyPressed } = command;
@@ -356,8 +353,6 @@ function createGame() {
         checkToStartGame,
         addPlayer,
         removePlayer,
-        addFruit,
-        removeFruit,
         removeAllFruit,
         movePlayer,
         checkForFruitColision,
