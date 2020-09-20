@@ -1,67 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Get The Point</title>
-    <link rel="stylesheet" href="style.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Changa:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-    />
 
-    <script src="/socket.io/socket.io.js"></script>
-  </head>
-  <body>
-    <div id="menu" class="container">
-      <div class="menu">
-        <div class="game-cover">
-          <div class="top-space"></div>
-          <div class="bottom-space">
-            <h1 class="game-name">
-              <strong style="font-size: 1.2em; color: #ccc">G</strong>et
-              <strong style="font-size: 1.2em; color: green">T</strong>he
-              <strong style="font-size: 1.2em; color: blue">P</strong>oint
-            </h1>
-          </div>
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Get The Point</title>
+	<link rel="stylesheet" href="style.css" />
+	<link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;700&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
 
-          <div class="box game-player-box">
-            <div class="player-cover"></div>
-          </div>
-          <div class="box game-fruit-box">
-            <div class="fruit-cover"></div>
-          </div>
-          <div class="box game-enemy-box">
-            <div class="enemy-cover"></div>
-          </div>
-        </div>
+	<script src="/socket.io/socket.io.js"></script>
+</head>
 
-        <div class="controllers">
-          <div class="press-start">
-            <button class="menu-btn" id="start">Iniciar</button>
-          </div>
-        </div>
-      </div>
-    </div>
+<body>
+	<div id="menu" class="container">
+		<div class="menu">
+			<div class="game-cover">
+				<div class="top-space"></div>
+				<div class="bottom-space">
+					<h1 class="game-name">
+						<strong style="font-size: 1.2em; color: #ccc">G</strong>et
+						<strong style="font-size: 1.2em; color: green">T</strong>he
+						<strong style="font-size: 1.2em; color: blue">P</strong>oint
+					</h1>
+				</div>
 
-    <div id="game" style="justify-content: center; flex-direction: column">
-      <div class="content-wrapper">
-        <table class="hud" id="playerList"></table>
-        <div class="gamehud">
-          <h3 id="meta" class="meta"></h3>
-          <canvas class="game-canvas" id="canvas-screen"></canvas>
-        </div>
+				<div class="box game-player-box">
+					<div class="player-cover"></div>
+				</div>
+				<div class="box game-fruit-box">
+					<div class="fruit-cover"></div>
+				</div>
+				<div class="box game-enemy-box">
+					<div class="enemy-cover"></div>
+				</div>
+			</div>
 
-        <table class="hud" id="playerScore"></table>
-      </div>
+			<div class="controllers">
+				<div class="press-start">
+					<button class="menu-btn" id="start">Iniciar</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-      <div id="banner-vote" class="select-meta text-center">
-        <p>Vote no objetivo da partida!</p>
-        <select name="meta-dropdown" class="meta-dropdown" id="meta-dropdown">
+	<div id="game" style="justify-content: center; flex-direction: column">
+		<div class="content-wrapper">
+			<table class="hud" id="playerList"></table>
+			<div class="gamehud">
+				<h3 id="meta" class="meta"></h3>
+				<canvas class="game-canvas" id="canvas-screen"></canvas>
+			</div>
+
+			<table class="hud" id="playerScore"></table>
+		</div>
+
+		<div id="banner-vote" class="select-meta text-center">
+			<p>Vote no objetivo da partida!</p>
+			<select name="meta-dropdown" class="meta-dropdown" id="meta-dropdown">
           <option value="" selected>SELECIONE OS PONTOS</option>
           <option value="10">10 Pontos</option>
           <option value="20">20 Pontos</option>
@@ -70,25 +66,22 @@
           <option value="50">50 Pontos</option>
           <option value="100">100 Pontos</option>
         </select>
-      </div>
-      <button id="btn-read" class="btn">
+		</div>
+		<button id="btn-read" class="btn">
         INICIAR <i class="fa fa-check"></i>
       </button>
 
-      <div id="legend" class="legend-container">
-        <span class="box-green"></span>
-        <span class="value">1 PONTO</span>
+		<div id="legend" class="legend-container">
+			<span class="box-green"></span>
+			<span class="value">2 PONTO</span>
 
-        <span class="box-purple"></span>
-        <span class="value">-5 PONTOS</span>
+			<span class="box-orange"></span>
+			<span class="value">5 PONTOS</span>
+		</div>
+	</div>
 
-        <span class="box-orange"></span>
-        <span class="value">5 PONTOS</span>
-      </div>
-    </div>
-
-    <script type="module">
-      import createKeyboardListenner from "./keyboard-listenner.js";
+	<script type="module">
+		import createKeyboardListenner from "./keyboard-listenner.js";
       import createGame from "./game.js";
       import renderScreen from "./render.js";
       const scoreTable = document.getElementById("playerScore");
@@ -141,9 +134,7 @@
         screen.width = game.state.screen.width;
         screen.height = game.state.screen.height;
 
-        renderScreen(screen, game, requestAnimationFrame, playerId, {
-          playerId: "Maique",
-        });
+        renderScreen(screen, game, requestAnimationFrame, playerId);
       });
 
       socket.on("setup", (newState) => {
@@ -353,5 +344,6 @@
         return td;
       }
     </script>
-  </body>
+</body>
+
 </html>
