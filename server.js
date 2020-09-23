@@ -22,7 +22,9 @@ sockets.on("connection", (socket) => {
   const command = { playerId: socket.id };
   console.log(`> Player connected on server with id ${command.playerId}`);
 
-  socket.on("enter-game", () => {
+  socket.on("enter-game", (data) => {
+    command.playerName = data.playerName;
+    
     game.addPlayer(command);
     socket.emit("setup", game.state);
 
