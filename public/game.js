@@ -288,6 +288,7 @@ function createGame() {
     );
 
     if (winnerPlayer) {
+      winnerPlayer.playerName = state.players[winnerPlayer.playerId].name;
       finishMatch(winnerPlayer);
     }
   }

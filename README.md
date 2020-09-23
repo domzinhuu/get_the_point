@@ -10,7 +10,9 @@
 - [x] Stop do jogo caso os jogadores se desconectem
 - [x] Possibilidade do player escolher a pontuação para ganhar
 - [ ] Criação de Salas privadas
-- [ ] Alteração do nome do Player
+- [x] Player escolhe seu própio nickname
+- [ ] Refatoração no client com patern **decorator**
+- [ ] Ajustando o frontend do game
 
 ## O QUE FOI USADO
 
@@ -24,7 +26,7 @@
 
 Este é um pequeno jogo experimental com HTML/Javascript. O jogo tem por objeto recolher os pontos que aparecem aleatóriamente de tempos em tempos, dependendo da cor do elemento que aparceu para ser recolhido temos uma pontuação diferente.
 
-- ELEMENTO VERDE   : 2 Ponto
+- ELEMENTO VERDE : 2 Ponto
 - ELEMENTO LARANJA : 5 Pontos
 
 O jogador que conseguir recolher 50 pontos é o vencedor.
