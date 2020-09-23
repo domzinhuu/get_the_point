@@ -203,7 +203,12 @@
       });
 
       socket.on("finish-match", (winner) => {
-        alert(`JOGADOR ${winner.playerId} VENCEU!!!`);
+        alert(
+          `JOGADOR ${game.state.players[
+            winner.playerId
+          ].name.toUpperCase()} VENCEU!!!`
+        );
+
         legendPanel.style.display = "none";
         readButton.classList.remove("ready");
         readButton.innerHTML = "";
@@ -282,7 +287,7 @@
           const tdPlayerName = document.createElement("td");
           const tdPosition = document.createElement("td");
 
-          tdPlayerName.innerText = score.playerId;
+          tdPlayerName.innerText = score.playerName;
           tdPosition.innerText = score.score;
           tdPosition.style.textAlign = "right";
           tdPosition.colSpan = 2;
